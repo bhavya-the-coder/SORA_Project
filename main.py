@@ -1,6 +1,7 @@
 from fetch_data import fetch_sora
 from process_data import save_to_csv
 from create_report import create_excel_report
+from send_email import send_email
 
 
 def main():
@@ -35,6 +36,12 @@ def main():
     print("Generating Excel report...")
 
     create_excel_report()
+
+    print()
+
+    print("Sending email...")
+
+    send_email()
 
     print()
 
