@@ -29,7 +29,18 @@ def main():
 
     print("Updating CSV database...")
 
-    save_to_csv(data)
+    updated = save_to_csv(data)
+
+    if not updated:
+
+        print()
+        print("No report generated.")
+        print("No email sent.")
+        print()
+        print("SORA update completed.")
+        print()
+
+        return
 
     print()
 
@@ -45,8 +56,9 @@ def main():
 
     print()
 
-    print("SORA update completed successfully.")
-
+    print("==============================")
+    print(" SORA UPDATE COMPLETED")
+    print("==============================")
     print()
 
 

@@ -2,7 +2,6 @@ from pathlib import Path
 import csv
 from datetime import datetime
 
-
 # ---------------------------------
 # Project paths
 # ---------------------------------
@@ -19,6 +18,8 @@ def save_to_csv(data):
     DATA_FOLDER.mkdir(exist_ok=True)
 
     existing_records = {}
+
+    new_data_found = False
 
     # ---------------------------------
     # Read existing CSV
@@ -41,30 +42,22 @@ def save_to_csv(data):
     retrieved_time = datetime.now().strftime("%d-%b-%Y %H:%M:%S")
 
     # ---------------------------------
-    # Add / update MAS records
+    # Add only NEW records
     # ---------------------------------
 
     for item in data:
 
         date = datetime.strptime(
-            f"{item['Year']} {item['Month']} {item['Day']}", "%Y %b %d"
+            f"{item['Year']} {item['Month']} {item['Day']}",
+            "%Y %b %d",
         ).strftime("%Y-%b-%d")
 
-        publication = datetime.strptime(item["Publication Date"], "%d %b %Y").strftime(
-            "%d-%b-%Y"
-        )
+        publication = datetime.strptime(
+            item["Publication Date"],
+            "%d %b %Y",
+        ).strftime("%d-%b-%Y")
 
-        # Existing date
-
-        if date in existing_records:
-
-            existing_records[date]["Publication Date"] = publication
-
-            existing_records[date]["SORA"] = item["SORA"]
-
-        # New date
-
-        else:
+        if date not in existing_records:
 
             existing_records[date] = {
                 "Date": date,
@@ -73,8 +66,16 @@ def save_to_csv(data):
                 "Retrieved At": retrieved_time,
             }
 
+            new_data_found = True
+
+    if not new_data_found:
+
+        print("No new SORA data found.")
+
+        return False
+
     # ---------------------------------
-    # Sort records oldest to newest
+    # Sort oldest to newest
     # ---------------------------------
 
     sorted_records = sorted(
@@ -89,11 +90,19 @@ def save_to_csv(data):
     with open(FILE_PATH, "w", newline="") as file:
 
         writer = csv.DictWriter(
-            file, fieldnames=["Date", "Publication Date", "SORA", "Retrieved At"]
+            file,
+            fieldnames=[
+                "Date",
+                "Publication Date",
+                "SORA",
+                "Retrieved At",
+            ],
         )
 
         writer.writeheader()
 
         writer.writerows(sorted_records)
 
-    print(f"{len(data)} records processed successfully.")
+    print("New SORA data added successfully.")
+
+    return True
