@@ -1,0 +1,15 @@
+name: GitHub Scheduler Test
+
+on:
+  workflow_dispatch:
+
+  schedule:
+    - cron: "5 4 * * *"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print message
+        run: echo "GitHub Scheduler is working!"
