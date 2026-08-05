@@ -2,9 +2,7 @@ name: SORA Daily Automation
 
 on:
   workflow_dispatch:
-
   schedule:
-    # 9:00 AM Singapore = 1:00 AM UTC
     - cron: "35 3 * * *"
 
 jobs:
