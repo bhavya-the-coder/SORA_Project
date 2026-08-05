@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
   schedule:
-    # 9:00 AM Singapore (UTC+8)
-    - cron: "0 1 * * *"
+    # 1:15 PM Singapore (UTC+8)
+    - cron: "15 5 * * *"
 
 jobs:
   sora:
@@ -33,4 +33,5 @@ jobs:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
           RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
-        run: python main.py
+        run: |
+          python main.py
