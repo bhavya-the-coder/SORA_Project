@@ -3,7 +3,7 @@ name: SORA Daily Automation
 on:
   workflow_dispatch:
   schedule:
-    - cron: "35 3 * * *"
+    - cron: "40 3 * * *"
 
 jobs:
   sora:
