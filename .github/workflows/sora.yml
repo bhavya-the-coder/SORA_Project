@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
   schedule:
-    # 1:15 PM Singapore (UTC+8)
-    - cron: "15 5 * * *"
+    # 1:20 PM Singapore (UTC+8)
+    - cron: "20 5 * * *"
 
 jobs:
   sora:
