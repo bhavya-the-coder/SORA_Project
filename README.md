@@ -2,7 +2,7 @@
 
 An automated Python application that retrieves Singapore Overnight Rate Average (SORA) data, maintains historical records, generates Excel reports, and sends the report automatically by email.
 
-The project runs daily using **GitHub Actions**, allowing the automation to operate without requiring a personal computer to be switched on.
+The project is scheduled using **cron-job.org** and executed through **GitHub Actions**, allowing the automation to run daily without requiring a personal computer to be switched on.
 
 ---
 
@@ -13,9 +13,11 @@ The project runs daily using **GitHub Actions**, allowing the automation to oper
 * Maintains a historical SORA database in CSV format
 * Generates Excel reports automatically
 * Sends reports through Gmail SMTP
-* Uses secure environment variables for email credentials
+* Uses secure environment variables and GitHub Secrets for email credentials
 * Avoids unnecessary emails when there is no new SORA data
-* Runs automatically every day using GitHub Actions
+* Uses cron-job.org for daily scheduling
+* Uses GitHub Actions as the cloud execution environment
+* Runs completely automatically without requiring a local computer
 
 ---
 
@@ -27,7 +29,17 @@ Daily at 9:00 AM Singapore Time
         |
         v
 
-GitHub Actions starts workflow
+cron-job.org scheduler starts
+
+        |
+        v
+
+Send API request to GitHub Actions
+
+        |
+        v
+
+GitHub Actions workflow starts
 
         |
         v
@@ -106,7 +118,7 @@ SORA_Project/
 ├── .github/
 │   └── workflows/
 │       └── sora.yml
-│           GitHub Actions automation schedule
+│           GitHub Actions automation workflow
 │
 ├── data/
 │   Generated CSV and Excel files (not stored in GitHub)
@@ -124,6 +136,7 @@ SORA_Project/
 * Python-dotenv
 * Git
 * GitHub Actions
+* cron-job.org
 * Gmail SMTP
 * MAS SORA Data Source
 
@@ -213,9 +226,9 @@ The program will:
 
 ---
 
-# GitHub Actions Automation
+# Automation Setup
 
-The project uses GitHub Actions to run automatically.
+The project uses **cron-job.org** as the scheduler and **GitHub Actions** as the execution environment.
 
 Workflow file:
 
@@ -229,13 +242,62 @@ Schedule:
 Every day at 9:00 AM Singapore Time
 ```
 
-The workflow:
+Automation flow:
+
+```
+cron-job.org
+      |
+      v
+GitHub Actions API
+      |
+      v
+SORA Daily Automation Workflow
+      |
+      v
+Python automation scripts
+      |
+      v
+Email report delivery
+```
+
+The GitHub Actions workflow:
 
 * Creates a temporary Python environment
-* Installs dependencies
+* Installs project dependencies
 * Installs Chrome for Selenium
-* Runs the automation
-* Sends the generated report by email
+* Runs the automation scripts
+* Sends the generated report through email
+
+The workflow does not require the user's computer to be running.
+
+---
+
+# cron-job.org Configuration
+
+cron-job.org triggers the GitHub Actions workflow using the GitHub API.
+
+Configuration:
+
+```
+Method:
+POST
+
+Schedule:
+Daily at 9:00 AM Singapore Time
+
+Branch:
+main
+```
+
+Request body:
+
+```json
+{
+  "ref": "main"
+}
+```
+
+The scheduler sends an authenticated request to GitHub using a secure API token.
 
 ---
 
