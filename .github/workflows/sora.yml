@@ -5,7 +5,7 @@ on:
 
   schedule:
     # 9:00 AM Singapore = 1:00 AM UTC
-    - cron: "0 1 * * *"
+    - cron: "35 3 * * *"
 
 jobs:
   sora:
