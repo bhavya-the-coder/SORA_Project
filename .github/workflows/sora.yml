@@ -3,10 +3,6 @@ name: SORA Daily Automation
 on:
   workflow_dispatch:
 
-  schedule:
-    # 1:45 PM Singapore (UTC+8)
-    - cron: "45 5 * * *"
-
 jobs:
   sora:
     runs-on: ubuntu-latest
