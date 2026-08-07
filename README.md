@@ -23,7 +23,7 @@ The project is scheduled using **cron-job.org** and executed through **GitHub Ac
 
 # Project Workflow
 
-```
+```text
 Daily at 9:00 AM Singapore Time
 
         |
@@ -87,14 +87,13 @@ Generate Excel report
         v
 
 Send email report
-
 ```
 
 ---
 
 # Project Structure
 
-```
+```text
 SORA_Project/
 │
 ├── main.py
@@ -118,7 +117,7 @@ SORA_Project/
 ├── .github/
 │   └── workflows/
 │       └── sora.yml
-│           GitHub Actions automation workflow
+│           GitHub Actions workflow (triggered via workflow_dispatch)
 │
 ├── data/
 │   Generated CSV and Excel files (not stored in GitHub)
@@ -138,6 +137,7 @@ SORA_Project/
 * GitHub Actions
 * cron-job.org
 * Gmail SMTP
+* GitHub REST API
 * MAS SORA Data Source
 
 ---
@@ -146,35 +146,43 @@ SORA_Project/
 
 ## 1. Clone the repository
 
-```powershell
+```bash
 git clone https://github.com/bhavya-the-coder/SORA_Project.git
 ```
 
 Navigate into the project:
 
-```powershell
+```bash
 cd SORA_Project
 ```
 
 ---
 
-## 2. Create virtual environment
+## 2. Create a virtual environment
 
-```powershell
+```bash
 python -m venv venv
 ```
 
 Activate it:
 
-```powershell
+**Windows**
+
+```bash
 venv\Scripts\activate
+```
+
+**macOS / Linux**
+
+```bash
+source venv/bin/activate
 ```
 
 ---
 
 ## 3. Install dependencies
 
-```powershell
+```bash
 pip install -r requirements.txt
 ```
 
@@ -186,19 +194,19 @@ The project uses environment variables to protect email credentials.
 
 Create a file named:
 
-```
+```text
 .env
 ```
 
-Add:
+Add the following:
 
-```
+```text
 EMAIL_ADDRESS=your_email@gmail.com
 EMAIL_APP_PASSWORD=your_gmail_app_password
 RECEIVER_EMAIL=recipient_email@gmail.com
 ```
 
-Do not upload this file to GitHub.
+Do **not** upload this file to GitHub.
 
 ---
 
@@ -206,22 +214,22 @@ Do not upload this file to GitHub.
 
 Activate the virtual environment:
 
-```powershell
+```bash
 venv\Scripts\activate
 ```
 
 Run:
 
-```powershell
+```bash
 python main.py
 ```
 
 The program will:
 
-1. Fetch SORA data.
+1. Fetch the latest SORA data.
 2. Check for new records.
 3. Update the historical CSV.
-4. Generate the Excel report.
+4. Generate an Excel report.
 5. Email the report if new data is available.
 
 ---
@@ -230,55 +238,57 @@ The program will:
 
 The project uses **cron-job.org** as the scheduler and **GitHub Actions** as the execution environment.
 
+The workflow is triggered using GitHub's **workflow_dispatch** API instead of GitHub's built-in scheduler.
+
 Workflow file:
 
-```
+```text
 .github/workflows/sora.yml
 ```
 
-Schedule:
+Daily automation flow:
 
-```
-Every day at 9:00 AM Singapore Time
-```
-
-Automation flow:
-
-```
+```text
 cron-job.org
       |
       v
-GitHub Actions API
+GitHub REST API
       |
       v
-SORA Daily Automation Workflow
+workflow_dispatch
       |
       v
-Python automation scripts
+GitHub Actions
       |
       v
-Email report delivery
+Run Python automation
+      |
+      v
+Generate report
+      |
+      v
+Send email
 ```
 
 The GitHub Actions workflow:
 
-* Creates a temporary Python environment
-* Installs project dependencies
-* Installs Chrome for Selenium
-* Runs the automation scripts
-* Sends the generated report through email
+* Creates a temporary Ubuntu environment
+* Installs Python and project dependencies
+* Installs Google Chrome for Selenium
+* Runs the automation
+* Sends the generated report by email
 
-The workflow does not require the user's computer to be running.
+Since the workflow runs on GitHub-hosted runners, your computer does not need to be switched on.
 
 ---
 
 # cron-job.org Configuration
 
-cron-job.org triggers the GitHub Actions workflow using the GitHub API.
+The project uses **cron-job.org** to trigger the GitHub Actions workflow every day.
 
 Configuration:
 
-```
+```text
 Method:
 POST
 
@@ -297,7 +307,7 @@ Request body:
 }
 ```
 
-The scheduler sends an authenticated request to GitHub using a secure API token.
+The request is authenticated using a GitHub Personal Access Token stored securely within cron-job.org.
 
 ---
 
@@ -307,7 +317,7 @@ Email credentials are stored securely using GitHub Actions Secrets.
 
 Required secrets:
 
-```
+```text
 EMAIL_ADDRESS
 EMAIL_APP_PASSWORD
 RECEIVER_EMAIL
@@ -321,7 +331,7 @@ These values are never stored in the repository.
 
 Generated files:
 
-```
+```text
 data/
 │
 ├── historical_sora.csv
@@ -330,7 +340,7 @@ data/
 
 are created during execution but are not committed to GitHub.
 
-The GitHub Actions runner is temporary, so generated files are used only for report creation and email delivery.
+The GitHub Actions runner is temporary, so generated files exist only for the duration of the workflow and are used to create and email the report.
 
 ---
 
@@ -342,10 +352,11 @@ The automation includes checks for:
 * Failed email delivery
 * Missing SORA data
 * No new SORA records
+* Selenium execution failures
 
-The workflow output logs can be viewed from:
+Workflow logs can be viewed from:
 
-```
+```text
 GitHub Repository
         |
         v
@@ -359,22 +370,23 @@ SORA Daily Automation
 
 # Future Improvements
 
-Possible future enhancements:
+Possible future enhancements include:
 
-* Add detailed execution logs
-* Store reports in cloud storage
-* Add notifications for failed runs
-* Create a dashboard for SORA trends
-* Deploy as a web application
+* Store historical reports in cloud storage
+* Add automatic notifications for failed workflows
+* Build a dashboard to visualize SORA trends
+* Containerize the application using Docker
+* Add unit and integration tests
+* Package the project as a reusable Python application
 
 ---
 
 # Author
 
-Bhavya
+**Bhavya**
 
 ---
 
 # License
 
-This project is for personal automation and learning purposes.
+This project is intended for personal automation, educational purposes, and learning GitHub Actions, Selenium, and Python automation.
