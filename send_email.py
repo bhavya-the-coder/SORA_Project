@@ -14,6 +14,7 @@ def send_email():
     sender_password = os.getenv("EMAIL_APP_PASSWORD")
 
     receiver_emails = os.getenv("RECEIVER_EMAILS")
+    cc_emails = os.getenv("CC_EMAILS")
 
     if not receiver_emails:
         print("No receiver emails configured.")
@@ -21,6 +22,10 @@ def send_email():
 
     recipients = [
         email.strip() for email in receiver_emails.split(",") if email.strip()
+    ]
+
+    cc_recipients = [
+        email.strip() for email in (cc_emails or "").split(",") if email.strip()
     ]
 
     report_path = Path("data/SORA_Report.xlsx")
@@ -34,6 +39,9 @@ def send_email():
     msg["Subject"] = "Daily SORA Report"
     msg["From"] = sender_email
     msg["To"] = ", ".join(recipients)
+
+    if cc_recipients:
+        msg["Cc"] = ", ".join(cc_recipients)
 
     msg.set_content(
         """Hi,
@@ -65,7 +73,12 @@ SORA Automation
                 sender_password,
             )
 
-            smtp.send_message(msg)
+            all_recipients = recipients + cc_recipients
+
+            smtp.send_message(
+                msg,
+                to_addrs=all_recipients,
+            )
 
         print("Email sent successfully!")
 

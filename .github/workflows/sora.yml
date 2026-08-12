@@ -60,6 +60,8 @@ jobs:
           EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
           EMAIL_APP_PASSWORD: ${{ secrets.EMAIL_APP_PASSWORD }}
           RECEIVER_EMAILS: ${{ secrets.RECEIVER_EMAILS }}
+          CC_EMAILS: ${{ secrets.CC_EMAILS }}
+          
         run: |
           python main.py
 
