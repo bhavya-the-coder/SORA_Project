@@ -3,6 +3,10 @@ name: SORA Daily Automation
 on:
   workflow_dispatch:
 
+permissions:
+  actions: write
+  contents: read
+
 jobs:
   sora:
     runs-on: ubuntu-latest
@@ -10,6 +14,33 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Restore previous SORA history
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Looking for previous SORA history..."
+
+          ARTIFACT_ID=$(gh api \
+            "repos/${{ github.repository }}/actions/artifacts?name=sora-history&per_page=1" \
+            --jq '.artifacts | map(select(.expired == false)) | sort_by(.created_at) | last | .id // empty')
+
+          if [ -z "$ARTIFACT_ID" ]; then
+            echo "No previous SORA history found."
+            echo "Starting with a new dataset."
+          else
+            echo "Found previous SORA history artifact: $ARTIFACT_ID"
+
+            mkdir -p data
+
+            gh api \
+              "repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID/zip" \
+              > /tmp/sora-history.zip
+
+            unzip -o /tmp/sora-history.zip -d data
+
+            echo "Previous SORA history restored."
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -31,3 +62,12 @@ jobs:
           RECEIVER_EMAILS: ${{ secrets.RECEIVER_EMAILS }}
         run: |
           python main.py
+
+      - name: Save updated SORA history
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sora-history
+          path: data/historical_sora.csv
+          overwrite: true
+          retention-days: 90

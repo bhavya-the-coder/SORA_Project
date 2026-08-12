@@ -1,6 +1,6 @@
 from pathlib import Path
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # ---------------------------------
 # Project paths
@@ -74,17 +74,33 @@ def save_to_csv(data):
             new_data_found = True
 
     # ---------------------------------
-    # No new data
+    # Keep only the latest 12 months
     # ---------------------------------
 
-    if not new_data_found:
+    if existing_records:
 
-        print("No new SORA data found.")
+        latest_date = max(
+            datetime.strptime(
+                date,
+                "%Y-%b-%d",
+            )
+            for date in existing_records
+        )
 
-        return False
+        cutoff_date = latest_date - timedelta(days=365)
+
+        existing_records = {
+            date: row
+            for date, row in existing_records.items()
+            if datetime.strptime(
+                date,
+                "%Y-%b-%d",
+            )
+            >= cutoff_date
+        }
 
     # ---------------------------------
-    # Sort oldest to newest
+    # Save CSV if data exists
     # ---------------------------------
 
     sorted_records = sorted(
@@ -94,10 +110,6 @@ def save_to_csv(data):
             "%Y-%b-%d",
         ),
     )
-
-    # ---------------------------------
-    # Save CSV
-    # ---------------------------------
 
     with open(FILE_PATH, "w", newline="") as file:
 
@@ -117,6 +129,16 @@ def save_to_csv(data):
         writer.writeheader()
 
         writer.writerows(sorted_records)
+
+    # ---------------------------------
+    # New data check
+    # ---------------------------------
+
+    if not new_data_found:
+
+        print("No new SORA data found.")
+
+        return False
 
     print("New SORA data added successfully.")
 
