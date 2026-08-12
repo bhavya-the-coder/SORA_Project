@@ -41,16 +41,28 @@ def fetch_sora():
 
         driver.get(URL)
 
-        label = wait.until(
-            EC.element_to_be_clickable(
-                (
-                    By.CSS_SELECTOR,
-                    "label[for='ContentPlaceHolder1_ColumnsCheckBoxList_13']",
-                )
-            )
-        )
+        # ---------------------------------
+        # Select SORA columns
+        # ---------------------------------
 
-        driver.execute_script("arguments[0].click();", label)
+        checkbox_ids = [
+            "ContentPlaceHolder1_ColumnsCheckBoxList_13",  # SORA
+            "ContentPlaceHolder1_ColumnsCheckBoxList_18",  # Aggregate Volume
+            "ContentPlaceHolder1_ColumnsCheckBoxList_19",  # Highest Rate
+            "ContentPlaceHolder1_ColumnsCheckBoxList_20",  # Lowest Rate
+        ]
+
+        for checkbox_id in checkbox_ids:
+
+            checkbox = wait.until(EC.presence_of_element_located((By.ID, checkbox_id)))
+
+            if not checkbox.is_selected():
+
+                driver.execute_script("arguments[0].click();", checkbox)
+
+        # ---------------------------------
+        # Select date range
+        # ---------------------------------
 
         Select(
             driver.find_element(By.ID, "ContentPlaceHolder1_StartYearDropDownList")
@@ -68,9 +80,17 @@ def fetch_sora():
             driver.find_element(By.ID, "ContentPlaceHolder1_EndMonthDropDownList")
         ).select_by_visible_text(end_month)
 
+        # ---------------------------------
+        # Display results
+        # ---------------------------------
+
         driver.find_element(By.ID, "ContentPlaceHolder1_Button1").click()
 
         time.sleep(5)
+
+        # ---------------------------------
+        # Read table
+        # ---------------------------------
 
         table = driver.find_element(By.TAG_NAME, "table")
 
@@ -108,10 +128,14 @@ def fetch_sora():
 
             try:
 
-                # Full row:
-                # 2025 Sep 01 02 Sep 2025 0.7261
+                # ---------------------------------
+                # Full row
+                #
+                # 2026 Aug 03 04 Aug 2026
+                # 0.8830 2597 1.0500 0.4500
+                # ---------------------------------
 
-                if len(parts) >= 7 and parts[0].isdigit() and len(parts[0]) == 4:
+                if len(parts) >= 8 and parts[0].isdigit() and len(parts[0]) == 4:
 
                     current_year = parts[0]
                     current_month = parts[1]
@@ -121,9 +145,16 @@ def fetch_sora():
                     publication = parts[3] + " " + parts[4] + " " + parts[5]
 
                     sora = parts[6]
+                    aggregate_volume = parts[7]
+                    highest_rate = parts[8]
+                    lowest_rate = parts[9]
 
-                # Month change row:
-                # Oct 01 02 Oct 2025 1.0402
+                # ---------------------------------
+                # Month change row
+                #
+                # Aug 03 04 Aug 2026
+                # 0.8830 2597 1.0500 0.4500
+                # ---------------------------------
 
                 elif parts[0] in months:
 
@@ -134,9 +165,16 @@ def fetch_sora():
                     publication = parts[2] + " " + parts[3] + " " + parts[4]
 
                     sora = parts[5]
+                    aggregate_volume = parts[6]
+                    highest_rate = parts[7]
+                    lowest_rate = parts[8]
 
-                # Normal continuation:
-                # 02 03 Sep 2025 0.9315
+                # ---------------------------------
+                # Normal continuation
+                #
+                # 03 04 Aug 2026
+                # 0.8830 2597 1.0500 0.4500
+                # ---------------------------------
 
                 else:
 
@@ -145,6 +183,9 @@ def fetch_sora():
                     publication = parts[1] + " " + parts[2] + " " + parts[3]
 
                     sora = parts[4]
+                    aggregate_volume = parts[5]
+                    highest_rate = parts[6]
+                    lowest_rate = parts[7]
 
                 if current_year is None:
                     continue
@@ -156,6 +197,9 @@ def fetch_sora():
                         "Day": day,
                         "Publication Date": publication,
                         "SORA": sora,
+                        "Aggregate Volume": aggregate_volume,
+                        "Highest Rate": highest_rate,
+                        "Lowest Rate": lowest_rate,
                     }
                 )
 
@@ -172,3 +216,7 @@ def fetch_sora():
     print()
 
     return data
+
+
+if __name__ == "__main__":
+    fetch_sora()

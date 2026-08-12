@@ -33,7 +33,7 @@ def save_to_csv(data):
 
             for row in reader:
 
-                existing_records[row["Date"]] = row
+                existing_records[row["SORA VALUE DATE"]] = row
 
     # ---------------------------------
     # Current retrieval time
@@ -60,13 +60,22 @@ def save_to_csv(data):
         if date not in existing_records:
 
             existing_records[date] = {
-                "Date": date,
-                "Publication Date": publication,
+                "SORA VALUE DATE": date,
+                "SORA PUBLICATION DATE": publication,
                 "SORA": item["SORA"],
+                "AGGREGATE VOLUME OF SORA TRANSACTIONS (S$ MILLIONS)": item[
+                    "Aggregate Volume"
+                ],
+                "HIGHEST TRANSACTED RATE": item["Highest Rate"],
+                "LOWEST TRANSACTED RATE": item["Lowest Rate"],
                 "Retrieved At": retrieved_time,
             }
 
             new_data_found = True
+
+    # ---------------------------------
+    # No new data
+    # ---------------------------------
 
     if not new_data_found:
 
@@ -80,7 +89,10 @@ def save_to_csv(data):
 
     sorted_records = sorted(
         existing_records.values(),
-        key=lambda x: datetime.strptime(x["Date"], "%Y-%b-%d"),
+        key=lambda x: datetime.strptime(
+            x["SORA VALUE DATE"],
+            "%Y-%b-%d",
+        ),
     )
 
     # ---------------------------------
@@ -92,9 +104,12 @@ def save_to_csv(data):
         writer = csv.DictWriter(
             file,
             fieldnames=[
-                "Date",
-                "Publication Date",
+                "SORA VALUE DATE",
+                "SORA PUBLICATION DATE",
                 "SORA",
+                "AGGREGATE VOLUME OF SORA TRANSACTIONS (S$ MILLIONS)",
+                "HIGHEST TRANSACTED RATE",
+                "LOWEST TRANSACTED RATE",
                 "Retrieved At",
             ],
         )
