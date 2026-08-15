@@ -13,6 +13,7 @@ The project is scheduled using **cron-job.org** and executed through **GitHub Ac
 * Maintains a historical SORA database in CSV format
 * Generates Excel reports automatically
 * Sends reports through Gmail SMTP
+* Supports multiple email recipients and CC recipients
 * Uses secure environment variables and GitHub Secrets for email credentials
 * Avoids unnecessary emails when there is no new SORA data
 * Uses cron-job.org for daily scheduling
@@ -203,8 +204,11 @@ Add the following:
 ```text
 EMAIL_ADDRESS=your_email@gmail.com
 EMAIL_APP_PASSWORD=your_gmail_app_password
-RECEIVER_EMAIL=recipient_email@gmail.com
+RECEIVER_EMAILS=recipient@gmail.com,another_recipient@gmail.com
+CC_EMAILS=cc_email@gmail.com,another_cc@gmail.com
 ```
+
+Multiple email addresses can be separated using commas.
 
 Do **not** upload this file to GitHub.
 
@@ -320,7 +324,8 @@ Required secrets:
 ```text
 EMAIL_ADDRESS
 EMAIL_APP_PASSWORD
-RECEIVER_EMAIL
+RECEIVER_EMAILS
+CC_EMAILS
 ```
 
 These values are never stored in the repository.
