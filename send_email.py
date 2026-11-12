@@ -28,11 +28,13 @@ def send_email():
         email.strip() for email in (cc_emails or "").split(",") if email.strip()
     ]
 
-    report_path = Path("data/SORA_Report.xlsx")
+    report_paths = Path("data/SORA_Report.xlsx"), Path("data/Domestic_Interest_Rates.xlsx")
 
-    if not report_path.exists():
-        print(f"Report not found: {report_path}")
-        return
+    for report_path in report_paths:
+
+        if not report_path.exists():
+            print(f"Report not found: {report_path}")
+            return
 
     msg = EmailMessage()
 
@@ -43,24 +45,24 @@ def send_email():
     if cc_recipients:
         msg["Cc"] = ", ".join(cc_recipients)
 
-    msg.set_content(
-        """Hi,
+    msg.set_content("""Hi,
 
-Please find attached today's SORA report.
+Please find attached today's SORA report and SF Deposit Rate.
 
 Regards,
 SORA Automation
-"""
-    )
+""")
 
-    with open(report_path, "rb") as file:
+    for report_path in report_paths:
 
-        msg.add_attachment(
-            file.read(),
-            maintype="application",
-            subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            filename=report_path.name,
-        )
+        with open(report_path, "rb") as file:
+
+            msg.add_attachment(
+                file.read(),
+                maintype="application",
+                subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                filename=report_path.name,
+            )
 
     try:
 

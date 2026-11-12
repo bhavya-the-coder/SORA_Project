@@ -8,7 +8,6 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import time
 
-
 URL = "https://eservices.mas.gov.sg/statistics/dir/DomesticInterestRates.aspx"
 
 
@@ -36,6 +35,7 @@ def fetch_sora():
     wait = WebDriverWait(driver, 30)
 
     data = []
+    domestic_data = []
 
     try:
 
@@ -50,6 +50,7 @@ def fetch_sora():
             "ContentPlaceHolder1_ColumnsCheckBoxList_18",  # Aggregate Volume
             "ContentPlaceHolder1_ColumnsCheckBoxList_19",  # Highest Rate
             "ContentPlaceHolder1_ColumnsCheckBoxList_20",  # Lowest Rate
+            "ContentPlaceHolder1_ColumnsCheckBoxList_10",  # SF Deposit Rate
         ]
 
         for checkbox_id in checkbox_ids:
@@ -92,12 +93,22 @@ def fetch_sora():
         # Read table
         # ---------------------------------
 
-        table = driver.find_element(By.TAG_NAME, "table")
+        tables = driver.find_elements(By.TAG_NAME, "table")
 
-        rows = table.find_elements(By.TAG_NAME, "tr")
+        domestic_table = None
+        sora_table = None
 
-        current_year = None
-        current_month = None
+        for table in tables:
+            text = table.text.upper()
+
+            if "END OF" in text and "SF" in text:
+                domestic_table = table
+
+            elif "PUBLICATION" in text and "SORA" in text:
+                sora_table = table
+
+        if domestic_table is None or sora_table is None:
+            raise Exception("Could not find both MAS result tables.")
 
         months = {
             "Jan",
@@ -114,7 +125,16 @@ def fetch_sora():
             "Dec",
         }
 
-        for row in rows:
+        # ---------------------------------
+        # Extract SORA table
+        # ---------------------------------
+
+        sora_rows = sora_table.find_elements(By.TAG_NAME, "tr")
+
+        current_year = None
+        current_month = None
+
+        for row in sora_rows:
 
             text = row.text.strip()
 
@@ -135,7 +155,7 @@ def fetch_sora():
                 # 0.8830 2597 1.0500 0.4500
                 # ---------------------------------
 
-                if len(parts) >= 8 and parts[0].isdigit() and len(parts[0]) == 4:
+                if len(parts) >= 10 and parts[0].isdigit() and len(parts[0]) == 4:
 
                     current_year = parts[0]
                     current_month = parts[1]
@@ -194,7 +214,7 @@ def fetch_sora():
                     {
                         "Year": current_year,
                         "Month": current_month,
-                        "Day": day,
+                        "Day": day.zfill(2),
                         "Publication Date": publication,
                         "SORA": sora,
                         "Aggregate Volume": aggregate_volume,
@@ -203,7 +223,92 @@ def fetch_sora():
                     }
                 )
 
-            except Exception:
+            except (IndexError, ValueError):
+
+                continue
+
+        # ---------------------------------
+        # Extract Domestic Interest Rates table
+        # ---------------------------------
+
+        domestic_rows = domestic_table.find_elements(By.TAG_NAME, "tr")
+
+        domestic_year = None
+        domestic_month = None
+
+        for row in domestic_rows:
+
+            text = row.text.strip()
+
+            if not text:
+                continue
+
+            if "DATE" in text or "SORA" in text or "RATE" in text:
+                continue
+
+            parts = text.split()
+
+            if len(parts) < 3:
+                continue
+
+            try:
+
+                # ---------------------------------
+                # Full row
+                #
+                # 2026 Nov 02
+                # 1.4160 1.02
+                # ---------------------------------
+
+                if parts[0].isdigit() and len(parts[0]) == 4:
+
+                    domestic_year = parts[0]
+                    domestic_month = parts[1]
+
+                    day = parts[2]
+                    sora_value = parts[3]
+                    sf_rate = parts[4]
+
+                # ---------------------------------
+                # Month change row
+                #
+                # Dec 01 1.3000 0.90
+                # ---------------------------------
+
+                elif parts[0] in months:
+
+                    domestic_month = parts[0]
+
+                    day = parts[1]
+                    sora_value = parts[2]
+                    sf_rate = parts[3]
+
+                # ---------------------------------
+                # Normal continuation
+                #
+                # 03 1.3668 0.91
+                # ---------------------------------
+
+                else:
+
+                    day = parts[0]
+                    sora_value = parts[1]
+                    sf_rate = parts[2]
+
+                if domestic_year is None or domestic_month is None:
+                    continue
+
+                domestic_data.append(
+                    {
+                        "Year": domestic_year,
+                        "Month": domestic_month,
+                        "Day": day.zfill(2),
+                        "SORA": sora_value,
+                        "SF Deposit Rate": sf_rate,
+                    }
+                )
+
+            except (IndexError, ValueError):
 
                 continue
 
@@ -212,10 +317,11 @@ def fetch_sora():
         driver.quit()
 
     print()
-    print(f"Records extracted: {len(data)}")
+    print(f"SORA records extracted: {len(data)}")
+    print(f"Domestic Interest Rates records extracted: {len(domestic_data)}")
     print()
 
-    return data
+    return {"sora": data, "domestic": domestic_data}
 
 
 if __name__ == "__main__":

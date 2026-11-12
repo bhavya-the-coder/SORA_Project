@@ -1,6 +1,6 @@
 from fetch_data import fetch_sora
-from process_data import save_to_csv
-from create_report import create_excel_report
+from process_data import save_to_csv, save_domestic_to_csv
+from create_report import create_excel_report, create_domestic_interest_rates_report
 from send_email import send_email
 
 
@@ -15,7 +15,10 @@ def main():
     print("Fetching SORA data from MAS...")
     print()
 
-    data = fetch_sora()
+    result = fetch_sora()
+
+    data = result["sora"]
+    domestic_data = result["domestic"]
 
     if len(data) == 0:
 
@@ -23,13 +26,20 @@ def main():
 
         return
 
-    print(f"Retrieved {len(data)} records.")
+    print(f"Retrieved {len(data)} SORA records.")
+    print(f"Retrieved {len(domestic_data)} Domestic Interest Rates records.")
 
     print()
 
-    print("Updating CSV database...")
+    print("Updating SORA CSV database...")
 
     updated = save_to_csv(data)
+
+    print()
+
+    print("Updating Domestic Interest Rates CSV database...")
+
+    save_domestic_to_csv(domestic_data)
 
     if not updated:
 
@@ -44,9 +54,15 @@ def main():
 
     print()
 
-    print("Generating Excel report...")
+    print("Generating SORA Excel report...")
 
     create_excel_report()
+
+    print()
+
+    print("Generating Domestic Interest Rates Excel report...")
+
+    create_domestic_interest_rates_report()
 
     print()
 

@@ -143,3 +143,131 @@ def save_to_csv(data):
     print("New SORA data added successfully.")
 
     return True
+
+
+# ---------------------------------
+# Domestic Interest Rates CSV path
+# ---------------------------------
+
+DOMESTIC_FILE_PATH = DATA_FOLDER / "historical_domestic_interest_rates.csv"
+
+
+# ---------------------------------
+# Save Domestic Interest Rates to CSV
+# ---------------------------------
+
+
+def save_domestic_to_csv(domestic_data):
+
+    DATA_FOLDER.mkdir(exist_ok=True)
+
+    existing_records = {}
+
+    new_data_found = False
+
+    # ---------------------------------
+    # Read existing CSV
+    # ---------------------------------
+
+    if DOMESTIC_FILE_PATH.exists():
+
+        with open(DOMESTIC_FILE_PATH, "r", newline="") as file:
+
+            reader = csv.DictReader(file)
+
+            for row in reader:
+
+                existing_records[row["END OF PERIOD / SORA VALUE DATE"]] = row
+
+    # ---------------------------------
+    # Current retrieval time
+    # ---------------------------------
+
+    retrieved_time = datetime.now().strftime("%d-%b-%Y %H:%M:%S")
+
+    # ---------------------------------
+    # Add only NEW records
+    # ---------------------------------
+
+    for item in domestic_data:
+
+        date = datetime.strptime(
+            f"{item['Year']} {item['Month']} {item['Day']}",
+            "%Y %b %d",
+        ).strftime("%Y-%b-%d")
+
+        if date not in existing_records:
+
+            existing_records[date] = {
+                "END OF PERIOD / SORA VALUE DATE": date,
+                "SORA": item["SORA"],
+                "SF DEPOSIT RATE": item["SF Deposit Rate"],
+                "Retrieved At": retrieved_time,
+            }
+
+            new_data_found = True
+
+    # ---------------------------------
+    # Keep only the latest 12 months
+    # ---------------------------------
+
+    if existing_records:
+
+        latest_date = max(
+            datetime.strptime(date, "%Y-%b-%d") for date in existing_records
+        )
+
+        cutoff_date = latest_date - timedelta(days=365)
+
+        existing_records = {
+            date: row
+            for date, row in existing_records.items()
+            if datetime.strptime(date,"%Y-%b-%d")
+            >= cutoff_date
+        }
+
+    # ---------------------------------
+    # Sort records by date
+    # ---------------------------------
+
+    sorted_records = sorted(
+        existing_records.values(),
+        key=lambda x: datetime.strptime(
+            x["END OF PERIOD / SORA VALUE DATE"],
+            "%Y-%b-%d",
+        ),
+    )
+
+    # ---------------------------------
+    # Save CSV if data exists
+    # ---------------------------------
+
+    with open(DOMESTIC_FILE_PATH, "w", newline="") as file:
+
+        writer = csv.DictWriter(
+            file,
+            fieldnames=[
+                "END OF PERIOD / SORA VALUE DATE",
+                "SORA",
+                "SF DEPOSIT RATE",
+                "Retrieved At",
+            ],
+        )
+
+        writer.writeheader()
+
+        writer.writerows(sorted_records)
+
+    # ---------------------------------
+    # New data check
+    # ---------------------------------
+
+    if not new_data_found:
+
+        print("No new Domestic Interest Rates data found.")
+
+        return False
+
+    print("New Domestic Interest Rates data added successfully.")
+
+    return True
