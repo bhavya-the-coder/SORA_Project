@@ -6,3 +6,5 @@ data/*.csv
 data/*.xlsx
 
 .env
+
+.DS_Store
